@@ -1,9 +1,11 @@
+use actix_web::web::Path;
 use actix_web::{get, post, put, web, HttpResponse, Scope};
 use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::QueryDsl;
 
 use crate::models::UserModel;
+use crate::types::orders::{OrderDTO, OrderedProductDTO};
 use crate::AppData;
 
 use crate::schema::users::dsl::*;
@@ -59,5 +61,22 @@ async fn change_phone_number(
     {
         Ok(_) => HttpResponse::Ok().json(new_phone_number.clone()),
         Err(_) => HttpResponse::Forbidden().finish(),
+    }
+}
+
+#[post("/{tg_id}/make_order")]
+async fn make_order(
+    app_data: web::Data<AppData>,
+    products: web::Json<Vec<OrderedProductDTO>>,
+    tg_id: Path<i64>,
+) -> HttpResponse {
+    let store = OrderDTO {
+        customer_telegram_id: *tg_id,
+        products: products.0,
+    }
+    .store(&mut app_data.db_pool.get().unwrap());
+    match store {
+        Ok(order) => HttpResponse::Created().json(order),
+        Err(_) => HttpResponse::BadRequest().finish(),
     }
 }

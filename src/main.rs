@@ -9,8 +9,10 @@ use redis::Client;
 mod controllers;
 mod models;
 mod schema;
+mod types;
 
 type DBPool = r2d2::Pool<ConnectionManager<PgConnection>>;
+type DBConnection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
 
 #[derive(Clone)]
 struct AppData {

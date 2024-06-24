@@ -1,8 +1,10 @@
-use crate::schema::{discounts, orders, products, users};
+use crate::schema::{
+    discounts, ordered_custom_products, ordered_default_products, orders, products, users,
+};
 use chrono::NaiveDateTime;
 use diesel::{prelude::*, Selectable};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use serde::{Serialize, Deserialize};
 
 #[derive(Insertable, Queryable, Selectable, Serialize, Deserialize)]
 #[diesel(table_name = users)]
@@ -34,11 +36,60 @@ pub struct DiscountModel {
     pub ends_at: NaiveDateTime,
 }
 
-#[derive(Insertable, Queryable, Selectable, Serialize, Deserialize)]
+#[derive(Queryable, Selectable, Serialize, Deserialize)]
 #[diesel(belongs_to(UserModel))]
 #[diesel(table_name = orders)]
 pub struct OrderModel {
     pub id: i64,
     pub customer: i64,
     pub ordered_at: NaiveDateTime,
+}
+
+#[derive(Insertable)]
+#[diesel(belongs_to(UserModel))]
+#[diesel(table_name = orders)]
+pub struct CreateOrderModel {
+    pub customer: i64,
+}
+
+#[derive(Queryable, Selectable, Serialize, Deserialize)]
+#[diesel(belongs_to(OrderModel))]
+#[diesel(table_name = ordered_custom_products)]
+pub struct OrderedCustomProductModel {
+    pub id: i64,
+    pub refs_to_photos: Vec<String>,
+    pub characteristics: Value,
+    pub price: f64,
+    pub order_id: i64,
+}
+
+#[derive(Insertable)]
+#[diesel(belongs_to(OrderModel))]
+#[diesel(table_name = ordered_custom_products)]
+pub struct CreateOrderedCustomProductModel {
+    pub refs_to_photos: Vec<String>,
+    pub characteristics: Value,
+    pub price: f64,
+    pub order_id: i64,
+}
+
+#[derive(Queryable, Selectable, Serialize, Deserialize)]
+#[diesel(belongs_to(OrderModel))]
+#[diesel(table_name = ordered_default_products)]
+pub struct OrderedDefaultProductModel {
+    pub id: i64,
+    pub model: String,
+    pub characteristics: Value,
+    pub price_on_order: f64,
+    pub order_id: i64,
+}
+
+#[derive(Insertable)]
+#[diesel(belongs_to(OrderModel))]
+#[diesel(table_name = ordered_default_products)]
+pub struct CreateOrderedDefaultProductModel {
+    pub model: String,
+    pub characteristics: Value,
+    pub price_on_order: f64,
+    pub order_id: i64,
 }
