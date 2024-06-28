@@ -21,6 +21,9 @@ def ask_db_password() -> str:
     return getpass.getpass("Enter password to db: ")
 
 def run_diesel_migrations():
+    print("Setup diesel")
+    subprocess.run("diesel setup", shell=True, check=True)
+    print("Running migrations")
     subprocess.run("diesel migration run", shell=True, check=True)
 
 def ask_run_server():
@@ -30,9 +33,15 @@ def ask_run_server():
             continue
         break
     if answer == "y":
-        subprocess.run("cargo run", shell=True)
+        subprocess.run("cargo run --release", shell=True)
 
-print("Running Migrations")
+db_name = ask_db_name()
+username = ask_db_name()
+password = ask_db_password()
+file = open(".env", mode="w")
+file.write(f"DATABASE_URL=postgres://{username}:{password}@localhost/{db_name}\n 
+           REDIS_URL=redis://127.0.0.1/")
+
 run_diesel_migrations()
 ask_run_server()
 print("Setup Doen")
